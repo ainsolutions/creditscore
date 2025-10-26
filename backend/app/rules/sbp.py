@@ -1,5 +1,7 @@
 from typing import Dict, Any, List
 from app.schemas import ScoreRequest
+from app.db import get_session
+from app.repository import get_policy
 
 
 # Simplified encoding of SBP Prudential Regulations for Consumer Financing.
@@ -15,9 +17,13 @@ def evaluate_sbp_rules(request: ScoreRequest) -> Dict[str, Any]:
     l = request.loan
     product = request.product_type
 
-    # Age limits (typical ranges)
-    min_age = 21 if product in ("personal", "cash", "car") else 25
-    max_age = 65 if product in ("personal", "cash", "car") else 70
+    # Load policy from DB
+    with get_session() as session:
+        policy = get_policy(session)
+
+    # Age limits
+    min_age = policy["min_age"].get(product, 21)
+    max_age = policy["max_age"].get(product, 70)
     flags["min_age"] = a.age_years >= min_age
     flags["max_age"] = a.age_years <= max_age
 
@@ -41,13 +47,8 @@ def evaluate_sbp_rules(request: ScoreRequest) -> Dict[str, Any]:
     proposed_emi = estimate_monthly_installment(amount=l.amount, tenor_months=l.tenor_months, annual_rate=0.28)
     dbr = (existing_debt + proposed_emi) / monthly_income if monthly_income > 0 else 1.0
 
-    # SBP often requires DBR <= 0.4-0.5 for unsecured; higher tolerances for secured
-    if product in ("personal", "cash"):
-        max_dbr = 0.4
-    elif product == "car":
-        max_dbr = 0.5
-    else:  # housing
-        max_dbr = 0.6
+    # DBR limit from policy
+    max_dbr = policy["max_dbr"].get(product, 0.5)
     flags["dbr_within_limit"] = dbr <= max_dbr
     if not flags["dbr_within_limit"]:
         ok = False
@@ -56,9 +57,10 @@ def evaluate_sbp_rules(request: ScoreRequest) -> Dict[str, Any]:
     # LTV and Down Payment rules for secured products
     if product == "car" and l.vehicle_value:
         ltv = l.amount / l.vehicle_value
-        min_down = 0.15  # 15% minimum down payment
+        min_down = float(policy.get("auto", {}).get("min_down", 0.15))
+        max_ltv = float(policy.get("auto", {}).get("max_ltv", 0.85))
         flags["min_down_payment"] = (l.down_payment or 0) >= l.vehicle_value * min_down
-        flags["ltv_within_limit"] = ltv <= 0.85
+        flags["ltv_within_limit"] = ltv <= max_ltv
         if not flags["min_down_payment"]:
             ok = False
             reasons.append("Down payment below 15% for auto financing")
@@ -68,20 +70,15 @@ def evaluate_sbp_rules(request: ScoreRequest) -> Dict[str, Any]:
 
     if product == "housing" and l.property_value:
         ltv = l.amount / l.property_value
-        # Housing LTV caps vary; using 85% as a typical cap for demonstration
-        flags["ltv_within_limit"] = ltv <= 0.85
+        max_ltv = float(policy.get("housing", {}).get("max_ltv", 0.85))
+        flags["ltv_within_limit"] = ltv <= max_ltv
         if not flags["ltv_within_limit"]:
             ok = False
             reasons.append("Housing LTV exceeds 85% limit")
 
     # Tenor limits (illustrative)
     tenor = l.tenor_months
-    tenor_limits = {
-        "personal": 60,
-        "cash": 36,
-        "car": 84,
-        "housing": 360,
-    }
+    tenor_limits = policy.get("tenor_limits", {"personal": 60, "cash": 36, "car": 84, "housing": 360})
     flags["tenor_within_limit"] = tenor <= tenor_limits[product]
     if not flags["tenor_within_limit"]:
         ok = False
