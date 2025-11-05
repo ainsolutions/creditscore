@@ -1,0 +1,52 @@
+{
+  "model_type": "VotingClassifier",
+  "features": [
+    "age",
+    "income",
+    "loan_amount",
+    "tenor",
+    "dbr",
+    "ltv",
+    "credit_score",
+    "existing_debt",
+    "tenure_months",
+    "dependents",
+    "dbr_risk",
+    "ltv_risk",
+    "credit_risk",
+    "credit_dbr_interaction",
+    "risk_concentration",
+    "payment_to_income",
+    "total_debt_to_income",
+    "loan_per_tenor_year",
+    "income_stability",
+    "high_risk_score",
+    "debt_capacity",
+    "age_income_ratio",
+    "loan_to_credit_score",
+    "income_per_dependent",
+    "product_type_encoded",
+    "purpose_encoded",
+    "ecib_status_encoded",
+    "employment_type_encoded"
+  ],
+  "num_features": 28,
+  "metrics": {
+    "accuracy": 0.8485,
+    "precision": 0.8629764065335753,
+    "recall": 0.8621940163191296,
+    "f1": 0.8625850340136054,
+    "roc_auc": 0.9396062830569512,
+    "confusion_matrix": [
+      [
+        746,
+        151
+      ],
+      [
+        152,
+        951
+      ]
+    ]
+  },
+  "training_date": "2025-11-05T18:23:59.069451"
+}

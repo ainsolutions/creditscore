@@ -1,0 +1,47 @@
+{
+  "model_type": "RandomForestClassifier",
+  "n_estimators": 300,
+  "max_depth": 20,
+  "training_date": "2025-11-05T17:52:57.456610",
+  "metrics": {
+    "roc_auc": 0.6701563090036143,
+    "confusion_matrix": [
+      [
+        905,
+        427
+      ],
+      [
+        311,
+        357
+      ]
+    ],
+    "feature_importance": {
+      "age": 0.032692460513689965,
+      "monthly_income": 0.03846886794291603,
+      "loan_amount": 0.041015661969416216,
+      "existing_debt": 0.04523550845872984,
+      "monthly_installment": 0.04265518343856982,
+      "dbr": 0.06577660382062515,
+      "ltv": 0.027770416588498756,
+      "credit_score": 0.053892658824352,
+      "tenor": 0.03809733300996384,
+      "income_to_loan_ratio": 0.04337698508701145,
+      "loan_to_income_multiple": 0.04495453857448371,
+      "free_cash_flow": 0.04374372015398683,
+      "free_cash_flow_ratio": 0.062448470139588375,
+      "payment_to_income": 0.043698700306804734,
+      "total_debt_to_income": 0.06103965453360964,
+      "loan_per_tenor_year": 0.04003644842812574,
+      "credit_dbr_interaction": 0.09303723994454931,
+      "income_stability": 0.040660841400841356,
+      "risk_concentration": 0.06943605046478692,
+      "product_type": 0.005709921919003441,
+      "employment_type": 0.009080436308830488,
+      "age_group": 0.011240847442583224,
+      "income_bracket": 0.006427138486896918,
+      "credit_category": 0.015608505735523817,
+      "dbr_category": 0.016277543318654098,
+      "ltv_category": 0.007618263187958475
+    }
+  }
+}
